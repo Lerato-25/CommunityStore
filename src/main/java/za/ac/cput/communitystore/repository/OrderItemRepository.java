@@ -2,12 +2,12 @@ package za.ac.cput.communitystore.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import za.ac.cput.communitystore.domain.Order;
+import za.ac.cput.communitystore.domain.OrderItem;
 
 import java.util.List;
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, Integer> {
+public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
 
-    List<Order> findByBuyer_UserID(int userId);
+    List<OrderItem> findByOrder_OrderID(int orderId);
 }
