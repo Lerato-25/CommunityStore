@@ -5,7 +5,7 @@ import jakarta.persistence.*;
         import java.util.Objects;
 
 @Entity
-@Table(name = "ProductImages")
+@Table(name = "ProductImage")
 public class ProductImage {
 
     @Id

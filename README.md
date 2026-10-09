@@ -7,7 +7,7 @@ Java 17 / Spring Boot backend with a separate Supabase frontend in `frontend/`.
 Requires a JDK 17 or newer and Maven 3.9 (or the included Maven wrapper).
 
 ```powershell
-mvn --batch-mode package
+mvn --batch-mode '-Dspring.profiles.active=test' package
 java -jar target/CommunityStore-0.0.1-SNAPSHOT.jar --spring.profiles.active=demo
 ```
 
@@ -44,7 +44,7 @@ The existing frontend authenticates against Supabase, not the Java user table. S
 
 ## API and permissions
 
-All Java API calls now require authenticated accounts. Backend 3 supports members with ownership checks; **legacy CRUD APIs require Admin** because those endpoints otherwise allow changing accounts, roles and orders without ownership checks. This is a deliberate compatibility change. Static pages remain accessible. The existing Supabase frontend does not call these Java APIs.
+Only Backend 3 routes require authentication and CSRF. Existing routes retain their original public access and behavior. Consequently, legacy account/order CRUD can bypass Backend 3 ownership guarantees; the owners must coordinate team-wide authentication before production use.
 
 Backend 3 uses HTTP Basic with BCrypt account hashes. Use HTTPS outside localhost. Mutations also require a session CSRF token, obtained with `GET /api/backend3/session`; send the returned `csrfHeader`/`csrfToken` and retain the session cookie alongside HTTP Basic authentication. The browser page handles this automatically and keeps credentials only in memory. These APIs return scalar DTOs, not nested account records.
 
@@ -92,10 +92,19 @@ Payments validate order ownership, total, Pending status and the unique order co
 ## Verification
 
 ```powershell
-mvn --batch-mode test
-mvn --batch-mode package
+mvn --batch-mode '-Dspring.profiles.active=test' test
+mvn --batch-mode '-Dspring.profiles.active=test' package
 ```
 
-The test profile uses disposable H2 and requires no local MySQL. Integration tests exercise real Basic authentication, CSRF, HTTP validation, ownership, persistence, payment results/replays, notification filtering and moderation. A schema compatibility test validates entities against the supplied table DDL in H2 MySQL mode; it is not a live MySQL/provider test and does not execute MySQL procedures/triggers. A separate profile test proves demo settlement is unavailable without `demo`.
+The test profile uses disposable H2 and requires no local MySQL. Integration tests exercise real Basic authentication, CSRF, HTTP validation, ownership, persistence, payment results/replays, notification filtering and moderation. Existing entity-to-SQL table-name differences are left unchanged for their owners; MySQL integration is not verified. A separate profile test proves demo settlement is unavailable without `demo`.
 
-The contribution also fixes the missing ProductImage service reference, singular table-name mismatches, the reserved product condition column, valid multi-level email domains, and password-hash serialization. No existing Supabase files or live data are modified.
+## Integration prerequisites owned by other members
+
+This contribution leaves ProductImageController, all existing User/Role/Product/Category/Review entities, OrderRepository, Helper and their tests unchanged. The original ProductImageController imports and injects nonexistent ProductImageService; its owner needs to use the existing IProductImageService interface. Until that independent fix is merged, a clean whole-project Maven build fails before Backend 3 tests run.
+
+The existing Java entities use table names that differ from the supplied SQL, and Product.condition needs quoting for MySQL. Their owners need to resolve these before testing against the supplied database. Supabase identity and Java BCrypt accounts also require a team integration decision.
+
+The only existing shared build file changed is pom.xml: Spring Security and its test dependency support the new routes, and H2 runtime supports the isolated demo. No teammate source files outside the four assigned feature families are modified. Payment order locking uses EntityManager without changing OrderRepository; successful simulated payment still updates the existing order through its existing factory/repository contract.
+
+Scope audit verification: in a separate verification copy with only the ProductImage compilation prerequisite corrected, all 13 Backend 3 tests pass. Across the full 29-test suite, 27 pass; the unchanged UserFactoryTest and HelperTest fail on the original multi-level email validation bug. Neither the controller correction nor the Helper correction is included in this PR. The earlier 30-test/Java 17 CI result applies to the broader revision, not this scoped revision.
+

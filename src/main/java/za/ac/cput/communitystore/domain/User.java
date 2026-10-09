@@ -13,7 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-    @Table(name = "Users")
+    @Table(name = "users")
     public class User {
 
         @Id
@@ -70,7 +70,6 @@ import jakarta.persistence.Table;
             return email;
         }
 
-        @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
         public String getPasswordHash() {
             return passwordHash;
         }

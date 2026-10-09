@@ -19,12 +19,17 @@ public class PaymentService implements IPaymentService {
     private final NotificationsRepository notifications;
     private final Backend3Access access;
     private final Environment environment;
+    @jakarta.persistence.PersistenceContext private jakarta.persistence.EntityManager entityManager;
     public PaymentService(PaymentRepository payments, OrderRepository orders, NotificationsRepository notifications,
             Backend3Access access, Environment environment) {
         this.payments=payments; this.orders=orders; this.notifications=notifications; this.access=access; this.environment=environment;
     }
+    private Optional<za.ac.cput.communitystore.domain.Order> lockedOrder(int id) {
+        return Optional.ofNullable(entityManager.find(za.ac.cput.communitystore.domain.Order.class,id,
+            jakarta.persistence.LockModeType.PESSIMISTIC_WRITE));
+    }
     public Payment create(int orderId, BigDecimal amount, String method) {
-        var order=access.required(orders.lockById(orderId),"Order");
+        var order=access.required(lockedOrder(orderId),"Order");
         access.ownerOrAdmin(order.getBuyer());
         if (!"Pending".equals(order.getOrderStatus())) throw new ResponseStatusException(HttpStatus.CONFLICT,"Order is not awaiting payment");
         if (BackendValidation.money(amount).compareTo(order.getTotalAmount()) != 0)
@@ -50,7 +55,7 @@ public class PaymentService implements IPaymentService {
         if (!environment.acceptsProfiles(Profiles.of("demo"))) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         var payment=access.required(payments.lockById(id),"Payment");
         access.ownerOrAdmin(payment.getOrder().getBuyer());
-        var order=access.required(orders.lockById(payment.getOrder().getOrderID()),"Order");
+        var order=access.required(lockedOrder(payment.getOrder().getOrderID()),"Order");
         // Lock the payment before reading its status so simultaneous results are serialized.
         if (!"Demo".equals(payment.getPaymentMethod())) throw new ResponseStatusException(HttpStatus.CONFLICT);
         if (!"Pending".equals(payment.getPaymentStatus())) {

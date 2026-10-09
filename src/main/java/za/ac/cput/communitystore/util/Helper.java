@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 public class Helper {
 
     private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[\\w.+-]+@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}$");
+            Pattern.compile("^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$");
 
     private Helper() {
         // static utility class, no instances

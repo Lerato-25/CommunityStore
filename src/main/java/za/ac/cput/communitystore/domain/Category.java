@@ -11,7 +11,7 @@ import jakarta.persistence.Table;
 import java.util.Objects;
 
 @Entity
-@Table(name = "Categories")
+@Table(name = "Category")
 public class Category {
 
     @Id
