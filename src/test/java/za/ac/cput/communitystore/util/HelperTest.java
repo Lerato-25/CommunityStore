@@ -21,6 +21,8 @@ class HelperTest {
     @Test
     void isValidEmail_invalidEmail_returnsFalse() {
         assertFalse(Helper.isValidEmail("not-an-email"));
+        assertFalse(Helper.isValidEmail("student@mycput..ac.za"));
+        assertFalse(Helper.isValidEmail("student@-mycput.ac.za"));
     }
 
     @Test

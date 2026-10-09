@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "Product")
+@Table(name = "Products")
 public class Product {
 
     @Id
@@ -43,7 +43,7 @@ public class Product {
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
-    @Column(name = "condition", nullable = false)
+    @Column(name = "`condition`", nullable = false)
     private String condition;
 
     @Column(name = "status", nullable = false)
